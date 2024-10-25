@@ -13,8 +13,8 @@ Features:
   2) CSV of WERD with topic scores: for each reform, the model assigns a score for each topic, indicating the prevalence of the topic for the given reform.
   3) Plot of topic prevalence.
   Note: we do not specify our qualitative labels, as they are subject to researcher discretion.
-Code & Notebooks: RMarkdown files used to preprocess the data, train the topic model, and generate its outputs, allowing researchers to reproduce or adapt the analysis for their own work.
-Usage Examples: Guidance on how to interpret and use the results for further research, including suggestions for how to map topics to education reform themes.
+* Code & Notebooks: RMarkdown files used to preprocess the data, train the topic model, and generate its outputs, allowing researchers to reproduce or adapt the analysis for their own work.
+* Usage Examples: Guidance on how to interpret and use the results for further research, including suggestions for how to map topics to education reform themes.
 
 This repository aims to provide a comprehensive, user-friendly resource for researchers interested in the intersection of education reforms and data science. All materials are available for free use under an open license, and contributions to improve the analysis or extend the project are welcome.
 
