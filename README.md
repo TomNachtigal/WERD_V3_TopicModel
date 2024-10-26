@@ -2,6 +2,7 @@
 Welcome! This repository provides researchers and analysts access to the results of a topic model analysis of education reform descriptions extracted from the World Education Reform Database (WERD, V3). The goal of this project is to help researchers uncover linguistic patterns, trends, and key themes in global education reforms by applying natural language processing (NLP) techniques.
 
 This repository aims to provide a comprehensive, user-friendly resource for researchers interested in using the topic model method. All materials are available for free use under an open license, and contributions to improve the analysis or extend the project are welcome.
+* How to cite?
 
 Feel free to explore the data, replicate the analysis, or use the insights for your own research projects. 
 
