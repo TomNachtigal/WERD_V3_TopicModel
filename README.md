@@ -8,7 +8,7 @@ Details about the topic model:
 * Licenses used: Used Google Translate API to translate non-English reforms, see: Google. (N.D). Cloud Translation - Google Cloud, Retreived from https://cloud.google.com/translate. To run this section of the code, be sure to obtain appropriate API. The dataset included here includes the English version of all reforms included in our analysis.
   
 Features:
-* Preprocessed Data: Cleaned and tokenized descriptions of education reforms from WERD, ready for topic modeling.
+* Preprocessed Data: Cleaned and tokenized descriptions of education reforms from WERD, ready for topic modeling (download and save all files, including the RMarkdown file with the code, into one directory on your machine to run the topic model).
 * Topic Model Results: Outputs of the STM, including:
   1) Table listing the topics in decreasing order by topic prevalence across the database (i.e., the most commonly discussed topic to the least discussed), including the most probably words associated with every topic, the most unique words to every topic, and 3 of the most associated reforms with every topic.
   2) CSV of WERD with topic scores: for each reform, the model assigns a score for each topic, indicating the prevalence of the topic for the given reform.
