@@ -57,8 +57,9 @@ The topics themselves are generated based on statistical patterns in the text of
 
 
 Key Considerations:
-Topic Overlap: Some reforms may address multiple themes, and the topic scores reflect this overlap. It is common for reforms to have moderate scores across several topics, rather than being exclusively tied to one.
-Dynamic Nature of Topics: Topics in the model are not predefined but are emergent from the reform descriptions. Therefore, they may sometimes represent nuanced or hybrid themes that require careful interpretation.
-Limitations: While topic scores provide valuable insights, they are based on text data and may not capture all policy details or nuances. It is often useful to combine topic model results with expert knowledge for more accurate interpretations.
+
+* Topic Overlap: Some reforms may address multiple themes, and the topic scores reflect this overlap. It is common for reforms to have moderate scores across several topics, rather than being exclusively tied to one.
+* Dynamic Nature of Topics: Topics in the model are not predefined but are emergent from the reform descriptions. Therefore, they may sometimes represent nuanced or hybrid themes that require careful interpretation.
+* Limitations: While topic scores provide valuable insights, they are based on text data and may not capture all policy details or nuances. It is often useful to combine topic model results with expert knowledge for more accurate interpretations.
 
 
