@@ -54,6 +54,8 @@ Cross-national Comparisons: By comparing the topic scores of reforms from differ
 
 3. Creating and Interpreting Topic Labels
 The topics themselves are generated based on statistical patterns in the text of the reform descriptions. Therefore, while topics may often be labeled by the most prominent words associated with them, it’s important to review the list of words associated with each topic to fully understand its scope. Each topic typically includes a set of "top words" that help define its theme (e.g., “teacher,” “training,” “development” for a topic on teacher training).
+
+
 Key Considerations:
 Topic Overlap: Some reforms may address multiple themes, and the topic scores reflect this overlap. It is common for reforms to have moderate scores across several topics, rather than being exclusively tied to one.
 Dynamic Nature of Topics: Topics in the model are not predefined but are emergent from the reform descriptions. Therefore, they may sometimes represent nuanced or hybrid themes that require careful interpretation.
