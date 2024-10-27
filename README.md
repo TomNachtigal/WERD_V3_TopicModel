@@ -31,7 +31,7 @@ How to use the generated topics?
   1) Download all the files included in this repository, including the RMarkdown with the code itself, into one directory on your machine.
   2) Run each section of the code separately, follow the comments to make sure that you are working with the correct R object (e.g., verify that the number of reforms included in the R object for each step corresponds with the number of reforms indicated in the comments).
   3) Follow the comments to go through the code, feel free to adjust or reach out with questions.
-  Note: we provide here a topic model with K = XX because we found it to provide the good balance of topics' semantic coherence and exclusivity, but the code allows you to change K and explore other models that could be more helpful for different analyses.
+  Note: we provide here a topic model with K = 30 because we found it to provide the good balance of topics' semantic coherence and exclusivity, but the code allows you to change K and explore other models that could be more helpful for different analytical purposes.
      
 * Usage Examples and interpretation guidance: Guidance on how to interpret and use the results for further research, including suggestions for how to map topics to education reform themes.
 The topic model assigns each education reform 30 topic scores for each of the topics created by the model (the most prevalent sets of co-occuring words across the reforms in the dataset). These topic scores indicate the relevance or association of each reform with the identified topics in the model. Here's how to interpret and use these scores effectively:
