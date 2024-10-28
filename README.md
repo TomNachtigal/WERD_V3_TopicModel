@@ -30,31 +30,35 @@ How to use the generated topics?
 * To run the code and recreate the topic model:
   1) Download all the files included in this repository, including the RMarkdown with the code itself, into one directory on your machine.
   2) Run each section of the code separately, follow the comments to make sure that you are working with the correct R object (e.g., verify that the number of reforms included in the R object for each step corresponds with the number of reforms indicated in the comments).
-  3) Follow the comments to go through the code, feel free to adjust or reach out with questions.
+  3) Follow the comments to run the code, feel free to adjust or reach out with questions.
   Note: we provide here a topic model with K = 30 because we found it to provide the good balance of topics' semantic coherence and exclusivity, but the code allows you to change K and explore other models that could be more helpful for different analytical purposes.
      
-* Usage Examples and interpretation guidance: Guidance on how to interpret and use the results for further research, including suggestions for how to map topics to education reform themes.
-The topic model assigns each education reform 30 topic scores for each of the topics created by the model (the most prevalent sets of co-occuring words across the reforms in the dataset). These topic scores indicate the relevance or association of each reform with the identified topics in the model. Here's how to interpret and use these scores effectively:
+Usage Examples and Interpretation Guidance: Guidance on how to interpret and use the results for further research, including suggestions for how to map topics to education reform themes.
 
-1. Understanding Topic Scores
+* The topic model assigns each education reform 30 topic scores for each of the topics created by the model (the most prevalent sets of co-occuring words across the reforms in the dataset). These topic scores indicate the relevance or association of each reform with the identified topics in the model. Here's how to interpret and use these scores effectively:
+
+1. Understanding Topic Scores:
 Each reform is assigned a topic score for all 30 topics, where each score represents the proportion or degree of association between that reform and a particular topic. These scores range from 0 to 1, with the sum of scores across all topics for a given reform typically summing to 1.
 
 High Topic Score: A high score (closer to 1) for a particular topic means that the reform has many words that are associated with the topic.
+
 Low Topic Score: A low score (closer to 0) means that the reform has little to no association with that topic.
+
 Balanced Scores: If a reform has balanced scores across several topics, it indicates that the reform spans multiple themes or topics identified in the model.
 
 2. Using Topic Scores for Analysis
-Identifying Thematic Trends: By analyzing the topic scores across a large set of reforms, you can identify thematic trends in education reform across different countries and against different variables (e.g., country-level variables may include economic productivity or growth, political regime type, membership in global organizations, human rights indicators, etc). For example, if Topic 12 (e.g., “early childhood education”) is consistently scoring high for a range of recent reforms, this could indicate a global or regional trend toward prioritizing early childhood education.
 
-Clustering Reforms by Topics: Reforms can be clustered based on their topic scores. This can help identify similar reforms that address the same themes, which might be useful for comparative policy analysis.
+* Identifying Thematic Trends: By analyzing the topic scores across a large set of reforms, you can identify thematic trends in education reform across different countries and against different variables (e.g., country-level variables may include economic productivity or growth, political regime type, membership in global organizations, human rights indicators, etc). For example, if Topic 12 (e.g., “early childhood education”) is consistently scoring high for a range of recent reforms, this could indicate a global or regional trend toward prioritizing early childhood education.
 
-Tracking Topic Evolution Over Time: If the database includes reforms from different time periods, you can track how the prevalence of certain topics evolves over time. For example, you might observe a shift in focus from traditional education topics (e.g., curriculum changes) to modern ones (e.g., digital education) by analyzing the topic scores for reforms enacted in different years. (see, e.g., Bromley et al., 2024).
+* Clustering Reforms by Topics: Reforms can be clustered based on their topic scores. This can help identify similar reforms that address the same themes, which might be useful for comparative policy analysis.
 
-Cross-national Comparisons: By comparing the topic scores of reforms from different countries, you can gain insights into how different nations are addressing similar educational challenges or focusing on specific themes.
+* Tracking Topic Evolution Over Time: If the database includes reforms from different time periods, you can track how the prevalence of certain topics evolves over time. For example, you might observe a shift in focus from traditional education topics (e.g., curriculum changes) to modern ones (e.g., digital education) by analyzing the topic scores for reforms enacted in different years. (see, e.g., Bromley et al., 2024).
+
+* Cross-national Comparisons: By comparing the topic scores of reforms from different countries, you can gain insights into how different nations are addressing similar educational challenges or focusing on specific themes.
 
 3. Creating and Interpreting Topic Labels
-The topics themselves are generated based on statistical patterns in the text of the reform descriptions. Therefore, while topics may often be labeled by the most prominent words associated with them, it’s important to review the list of words associated with each topic to fully understand its scope. Each topic typically includes a set of "top words" that help define its theme (e.g., “teacher,” “training,” “development” for a topic on teacher training).
 
+* The topics themselves are generated based on statistical patterns in the text of the reform descriptions. Therefore, while topics may often be labeled by the most prominent words associated with them, it’s important to review the list of words associated with each topic to fully understand its scope. Each topic typically includes a set of "top words" that help define its theme (e.g., “teacher,” “training,” “development” for a topic on teacher training).
 
 Key Considerations:
 
