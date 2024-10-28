@@ -1,11 +1,10 @@
 # WERD_V3_TopicModel
 Welcome! This repository provides researchers and analysts access to the results of a topic model analysis of education reform descriptions extracted from the World Education Reform Database (WERD, V3). The goal of this project is to help researchers uncover linguistic patterns, trends, and key themes in global education reforms by applying natural language processing (NLP) techniques.
 
-This repository aims to provide a comprehensive, user-friendly resource for researchers interested in using the topic model method. All materials are available for free use under an open license, and contributions to improve the analysis or extend the project are welcome.
+This repository aims to provide a comprehensive, user-friendly resource for researchers interested in using the topic model method. All materials are available for free use under an open license, and contributions to improve the analysis or extend the project are welcome. Feel free to explore the data, replicate the analysis, or use the insights for your own research projects. 
+
 * INCLUDE A REQUEST TO CITE?
 * For questions and inqueries - tomnacht@stanford.edu
-
-Feel free to explore the data, replicate the analysis, or use the insights for your own research projects. 
 
 Details about the topic model:
 * Dataset: Education reform descriptions between 1960-2021 from WERD V3 (https://werd.stanford.edu/database). See more details about the structure of WERD V3 in: Bromley, P., Kijima, R., Overbey, L., Furuta, J., Choi, M., Santos, H., Song, J., Nachtigal, T., and Yang, M. 2024. World Education Reform Database (WERD), Harvard Dataverse, V3.
