@@ -1,0 +1,394 @@
+---
+title: "Topic Model_WERD V3"
+author: "Tom Nachtigal"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(haven)
+library(readstata13)
+library(foreign)
+library(dplyr)
+require(quanteda)
+require(quanteda.textstats)
+require(stm)
+library(beepr)
+require(tm)
+library(tidyverse)
+library(datasets)
+library(readxl)
+library(knitr)
+library(readxl)
+library(writexl)
+library(ngram)
+library(googleLanguageR)
+library(cld2)
+library(googleAuthR)
+rm(list = ls())
+setwd("~/WERD research team")
+```
+
+
+```{r preparing the dataset}
+werd <- read_xlsx("werd_v3.xlsx") #download WERD V3 from werd.stanford.edu; 14,375 reforms
+werd <-  werd %>% filter(year > 1959) #11,565 reforms ## non-translated
+
+
+werd[werd ==""]<-NA
+
+# werd <- rename(werd, policy_description = reform_description)
+werd <- werd %>% filter(!is.na(reform_description))
+
+## cleaning
+werd_clean <- gsub("No additional information.*", "", werd$reform_description)
+werd_clean <- gsub("PUBLISHED BY EPO IN: Comparative report", "", werd_clean)
+werd_clean <- gsub("FURTHER READING:", "", werd_clean)
+werd_clean <- gsub("PUBLISHED BY EPO IN: Country profile", "", werd_clean)
+werd_clean <- gsub("No other link", "", werd_clean)
+werd_clean <- gsub("[Cc]ompiled by UNESCO-IBE (http://www.ibe.unesco.org/)", "", werd_clean)
+werd_clean <- gsub("[Cc]ompiled by UNESCO-IBE", "", werd_clean)
+werd_clean <- gsub("World Data on Education", "", werd_clean)
+werd_clean <- gsub("country profile", "", werd_clean)
+werd_clean <- gsub("published by epo in", "", werd_clean)
+werd_clean <- gsub("http://www.ibe.unesco.org/", "", werd_clean)
+werd_clean <- gsub("UNESCO-IBE", "", werd_clean)
+werd$reform_description <- werd_clean
+#removing reforms using the exact same language
+werd <- werd %>% distinct(reform_description, .keep_all = TRUE)  ##11,107 reforms
+
+
+#After translation (translation code can be requested separately)
+load("werdV3_cleanNtranslated.rda") ## 11,085 reforms
+```
+
+```{r preprocessing}
+load("werdV3_cleanNtranslated.rda")
+
+## Creating a corpus using the Quanteda package
+ref.corp <- quanteda::corpus(x= werd$reform_description,
+                             docnames = werd$reform_id) 
+
+## first iteration to extract relevant bigrams and trigrams
+
+augment.sw <- c(stopwords("en"), stopwords("fr"), stopwords("es"),"throughout", "law*", "within", "increas*", "also", "year*", "i.e*", "e.g*", "aim*", "improv*", "de", "co", "s", "take*", "will")
+
+ref.toks <- ref.corp %>% tokens(remove_punct = TRUE,
+                                          remove_numbers = TRUE,
+                                          remove_symbols = TRUE) %>%
+  tokens_tolower() %>% 
+  tokens_remove(".*[0-9].*", valuetype = "regex") %>%
+    tokens_remove(pattern = augment.sw) %>%
+  lapply(function(x) gsub("[[:punct:]]", "", x)) %>%  as.tokens() %>%
+  tokens_remove(pattern = augment.sw) 
+ 
+ref_bigrams <- ngram::ngram(paste(ref.toks, collapse=" "), n=2)
+read_bigrams <- get.phrasetable(ref_bigrams) 
+read_bigrams <- as.data.frame(read_bigrams)
+
+View(read_bigrams)
+
+read_bigrams <- filter(read_bigrams, freq > 79) #below 80 frequency, bigrams are not so meaningful
+bigrams <- read_bigrams$ngrams
+save(bigrams, file = "bigramsv3.rda")
+
+ref_trigrams <- ngram::ngram(paste(ref.toks, collapse=" "), n=3)
+read_trigrams <- get.phrasetable(ref_trigrams) 
+read_trigrams <- as.data.frame(read_trigrams)
+
+View(read_trigrams)
+read_trigrams <- filter(read_trigrams, freq > 39)#below 40 frequency, trigrams are not so meaningful
+trigrams <- read_trigrams$ngrams
+save(trigrams, file = "trigramsv3.rda")
+
+## Second iteration - full topic model analysis
+
+load("bigramsv3.rda")
+load("trigramsv3.rda")
+
+#extended list of stop words that do not carry *unique* semantic meaning in this corpus that's helpful to differentiate between topics
+augment.sw3 <- c(stopwords("en"), stopwords("fr"), stopwords("es"), "never","system", "reform", "several", "comprehensive", "move", "single", "restructure", "way", "undergo", "attempt", "concept", "time", "approv*", "guideline*", "define", "set", "decision", "procedure", "resolution", "regard", "rule", "must", "document", "date", "regist*", "contain*",  "kazakhstan", "like", "singapore", "mexico", "czech", "fiji", "finland", "slovenia", "indonesia", "vietnam", "canton", "ube", "japan", "zanzibar", "thai", "uganda", "samoa", "norway", "will", "pdo", "project", "old", "addition*", "publish", "add*", "act*", "länder", "foundat*", "affair*", "agreement*", "now", "novemb*", "give*", "amend*", "ever*", "receiv*", "subsequ*", "programm", "defin", "toward*", "promot*", "various", "however", "six", "upon", "shall", "april", "september",  "appli*", "recommend*", "another", "adopt*", "gave", "launch*", "least", "concern*", "educ*", "thus", "accord*", "plan", "oper*", "term*", "plan", "provi*", "purpose", "objective*", "led", "force", "begin", "march", "create", "set", "change", "type", "made", "varios", "order", "promote", "well", "polic*", "term", "make", "main", "first", "second", "three", "includ*", "implement*", "part*", "will", "decree", "framework", "launch", "availabl*", "general", "within", "change", "new", "may", "author*", "issu*", "publish", "init*", "one", "two", "four", "sinc*", "introduc*", "provid*", "relat*", "stud*", "whole", "july", "nine", "identif*", "correspond", "per", "obtain", "august", "ten", "great", "undertaken", "januari", "throughout", "decemb*", "februari", "whose", "still", "given", "june", "juli", "educ", "furthermore", "five", "legis*", "among", "can", "becam*", "view", "consid*", "call*", "decid", "becom*", "law", "act", "article", "establish*", "northern", "ireland", "also", "goal*", "aim*", "decree", "act", "follow", "take", "fully")
+
+#We also include additional ngrams that seemed meaningful in the above bigram and trigram generation process, but their relatively low frequency (below the threshold) left them out, though we thought they carry relevant semantic meaning nonetheless.
+allowed.phrases3 <-  c(bigrams, trigrams, "inter cultural", "improve quality education", "21st century", "global economy", "sustainable development","mother tongue", "foreign language", "out of school", "critical thinking", "child protect*", "community based", "common core", "at risk", "economic growth", "european union", "human capital", "school board", "bottom up", "independent school*", "well being", "disadvantaged students", "undeserved populations", "project-based", "monitoring and evaluation", "human rights", "ECE", "higher institutions", "labour market*", "private sector", "learning outcome*", "rural area*", "human resources", "human resources development")
+
+# This is an additional stop words list that is removed at the end of the tokenization procedure, as these tokens are create after removing punctuation that ties words together.
+augment.sw_last <- c("numb", "eg", "nacional", "october", "january", "february", "have", "take", "due", "profile", "make", "begin", "put", "england", "scotland", "kingdom", "often", "sen", "prsp", "alongside", "co", "školi", "taken*", "program*", "drawn", "type", "f", "octob", "zealand", "d", "e", "g", "s", "r", "ite", "da", "o", "vi", "vii", "ibe", "org", "http", "januari", "australian", "v", "etc", "folkeskol", "estonia", "nqf", "x", "t", "du", "l educ", "bmbf", "em", "h", "gom", "gce", "del","viii", "recherche", "l enseign", "loi", "supérieur", "à", "gob", "m", "vanuatu", "goe", "ida", "lag", "gosl", "al", "brned", "tsc", "ndp", "goi", "likewis", "www", "i e", "b", "c", "iii", "ð", "de", "la", "y", "n", "en", "et", "el", "l" , "ii", "iv", "i", "iii", "link", "base", "wale", "leducation", "royal", "ie", "lécole", "moyen", "ba","pédagogique", "edu", "años", "ad", "hoc", "básica", "efafti", "servicio", "guangdong","mecesup","tartu", "meister","der", "cp", "ecole", "conseil","paes","lycées","dorientation","concordat", "lycée", "ed", "pneib", "progresar", "niveles","becas", "técnico", "pdf", "decreto","básico","ilsa","nta","grantaided","universitaria", "nevis","leu","etats", "lécole","auh","docentes","pedp","nec","cfe","nem","dos","sip","vysoké", "ser","nla", "geqip", "nbe", "xi","mofera","yök","fts","formación","dkk","školy", "st", "für","système", "ssa", "sbm", "cbc", "k", "cxc","esdfp","gou","écoles","kmk", "csc", "nep", "cpd", "scolaire", "egb", "éducatif", "evaluación", "compile", "qa", "ncc", "hea", "scuola","dpr","bpep","qaa","sacmeq", "pr", "anep", "das", "nd", "lyceums", "bafög", "gon", "lea", "gopunjab", "sedp", "ix","moh", "aqf","cpe","niños","décennal", "xii", "oecs", "wsq", "eni","eib","collèges","nivel", "html")
+
+ref.toks <- ref.corp %>% tokens(remove_punct = TRUE,
+                                 remove_numbers = TRUE,
+                                 remove_symbols = TRUE) %>%
+                                 tokens_tolower() %>% 
+                                 tokens_remove("country profile", valuetype = "regex") %>%
+                                 tokens_remove("published by epo in", valuetype = "regex") %>%
+                                 tokens_remove("http://www.ibe.unesco.org/", valuetype = "regex") %>%
+                                 tokens_compound(phrase(allowed.phrases3))%>%
+                                 tokens_remove(pattern = augment.sw3) %>%
+                                 tokens_replace(pattern = lexicon::hash_lemmas$token, replacement = lexicon::hash_lemmas$lemma) %>%
+                                 lapply(function(x) gsub("[[:punct:]]", "", x)) %>%
+                                 as.tokens() %>%
+                                 tokens_remove(".*[0-9].*", valuetype = "regex") %>%
+                                 tokens_remove(pattern = augment.sw_last) 
+
+ref.dfm <- ref.toks %>% dfm() 
+ref.toks <- textstat_frequency(ref.dfm)
+View(ref.toks) 
+
+# after reviewing the term frequency matrix, we decided to further trim the term-document matrix to preclude tokens below a minimum of overall frequency of 9 and document frequency of 5, to increase the likelihood that words included in the data are meaningful and informative.
+
+ref.dfm <- ref.dfm %>% dfm_trim(min_docfreq = 5, min_termfreq = 9,
+                                  docfreq_type = "count",termfreq_type = "count")
+
+ref.stm <- convert(ref.dfm, to = "stm")
+save(ref.stm, file = "stmV3_tmFINAL.rda")
+
+dropped_indices <- c(1595, 2908, 8, 162, 8851, 9509, 13500, 3408, 5290, 4558, 4159, 13535, 13538, 5476, 5405, 6692, 6895) ## 17 reforms were dropped
+
+werd_without_dropped <- werd[!werd$reform_id %in% dropped_indices, ] ##11,068 reforms
+
+save(werd_without_dropped, file = "werd_without_droppedFINAL.rda")
+```
+
+```{r methods to select K}
+load("stmV3_tmFINAL.rda")
+
+## metrics to examine models with different K (number of topics) - note that the searchK function can time to run (~ 1 hour) - depending on the number of models requested to be examined and the values of K.
+kresult_v3 <- searchK(documents=ref.stm$documents, 
+                   vocab=ref.stm$vocab, 
+                   K = seq(25,55, 5), 
+                   verbose = F) 
+save(kresult_v3 , file = "kresult_v3_nov24.rda")
+beep()
+load("kresult_v3_nov24.rda")
+
+plot(kresult_v3)
+
+
+# Note that running the topic model can also take time to run, depending on the value of K. 
+
+mod30 <- stm(documents = ref.stm$documents,
+                  vocab = ref.stm$vocab,
+                  K = 30)
+save(mod30, file = "mod30V3_FINAL.rda")
+beep()
+load("mod30V3_FINAL.rda")
+
+plot(x = mod30,
+     type = "summary",
+     topics = 1:30,
+     labeltype = "prob",
+     n=10)
+
+mod33 <- stm(documents = ref.stm$documents,
+                  vocab = ref.stm$vocab,
+                  K = 33)
+save(mod33, file = "mod33V3.rda")
+beep()
+load("mod33V3.rda")
+
+
+plot(x = mod33,
+     type = "summary",
+     topics = 1:33,
+     labeltype = "prob",
+     n=10)
+
+mod35 <- stm(documents = ref.stm$documents,
+                  vocab = ref.stm$vocab,
+                  K = 35)
+save(mod35, file = "mod35V3.rda")
+beep()
+load("mod35V3.rda")
+
+plot(x = mod35,
+     type = "summary",
+     topics = 1:35,
+     labeltype = "prob",
+     n=10)
+
+mod40 <- stm(documents = ref.stm$documents,
+                  vocab = ref.stm$vocab,
+                  K = 40)
+save(mod40, file = "mod40V3_FINAL.rda")
+beep()
+load("mod40V3_FINAL.rda")
+
+plot(x = mod40,
+     type = "summary",
+     topics = 1:40,
+     labeltype = "prob",
+     n=10)
+
+mod43 <- stm(documents = ref.stm$documents,
+                  vocab = ref.stm$vocab,
+                  K = 43)
+save(mod43, file = "mod43V3.rda")
+beep()
+
+load("mod50_v3whole.rda")
+
+plot(x = mod43,
+     type = "summary",
+     topics = 1:43,
+     labeltype = "prob",
+     n=10)
+
+mod45 <- stm(documents = ref.stm$documents,
+                  vocab = ref.stm$vocab,
+                  K = 45)
+save(mod45, file = "mod45V3.rda")
+beep()
+
+load("mod45V3.rda")
+
+plot(x = mod45,
+     type = "summary",
+     topics = 1:45,
+     labeltype = "prob",
+     n=10)
+
+mod48 <- stm(documents = ref.stm$documents,
+                  vocab = ref.stm$vocab,
+                  K = 48)
+save(mod48, file = "mod48V3.rda")
+beep()
+
+load("mod48V3.rda")
+
+plot(x = mod48,
+     type = "summary",
+     topics = 1:48,
+     labeltype = "prob",
+     n=10)
+
+prevalence_plot <- plot(x = mod30,
+     type = "summary",
+     topics = 1:30,
+     labeltype = "prob",
+     n=10)
+save(prevalence_plot, file = "prevalence_plot_mod30V3.rda")
+```
+
+```{r plots to evaluate model perforamnce}
+## The code below generates evaluative plots to visualize the distribution of topics' semantic coherence v. their exclusivity for each of the models created above/
+
+kprep <- prepDocuments(documents = ref.stm$documents, vocab=ref.stm$vocab, ref.stm$meta, verbose=FALSE)
+docs <- kprep$documents
+
+M30ExSem <- as.data.frame(cbind(c(1:30), exclusivity(mod30), semanticCoherence(model=mod30, docs), "mod30"))
+M35ExSem <- as.data.frame(cbind(c(1:35), exclusivity(mod35), semanticCoherence(model=mod35, docs), "mod35"))
+M40ExSem <- as.data.frame(cbind(c(1:40), exclusivity(mod40), semanticCoherence(model=mod40, docs), "mod40"))
+M43ExSem <- as.data.frame(cbind(c(1:43), exclusivity(mod43), semanticCoherence(model=mod43, docs), "mod43"))
+M45ExSem <- as.data.frame(cbind(c(1:45), exclusivity(mod45), semanticCoherence(model=mod45, docs), "mod45"))
+M48ExSem <- as.data.frame(cbind(c(1:48), exclusivity(mod48), semanticCoherence(model=mod48, docs), "mod48"))
+
+ModsExSem <- rbind(M30ExSem,M35ExSem, M40ExSem, M43ExSem, M45ExSem,M48ExSem)
+colnames(ModsExSem) <- c("K","Exclusivity", "SemanticCoherence", "Model") # name the columns to be reference in the plot
+
+ModsExSem$Exclusivity <- as.numeric(as.character(ModsExSem$Exclusivity)) # saves in the format we want
+ModsExSem$SemanticCoherence <- as.numeric(as.character(ModsExSem$SemanticCoherence)) # saves in the format we want
+
+options(repr.plot.width=60, repr.plot.height=10, repr.plot.res=100) # set dimensions
+plotexsem <- ggplot(ModsExSem, aes(SemanticCoherence, Exclusivity, color = Model)) +
+  geom_line() +
+  geom_point(size = 2, alpha = 0.7) +
+  geom_text(aes(label=K), nudge_x=.05, nudge_y=.05) +
+  labs(x = "Semantic coherence",
+       y = "Exclusivity",
+       title = "Comparing exclusivity and semantic coherence")
+print(plotexsem)
+
+plotexsem_semcoh <- ggplot(ModsExSem, aes(y = SemanticCoherence, color = Model)) +
+  geom_boxplot() +
+  labs(x = "Model with K Topics",
+       y = "Semantic Coherence",
+       title = "Comparing Semantic Coherence by K")
+plotexsem_semcoh
+
+plotexsem_exec <- ggplot(ModsExSem, aes(y = Exclusivity, color = Model)) +
+  geom_boxplot() +
+  labs(x = "Model with K Topics",
+       y = "Exclusivity",
+       title = "Comparing Exclusivity by K")
+plotexsem_exec
+```
+
+```{r topic model outputs}
+## The following code can be used to output the most associated keywords and reforms with each topic
+## Based on the analysis above (using both the technical metrics and manual examination), it seems that model30 performs well in terms of balance between semantic coherent and exclusivity. The rest of the code will use this model
+
+load("mod30V3_FINAL.rda")
+
+## These functions generate outputs of the model:
+# Most associated keywords for any selected topics
+labelTopics(model = mod30,
+            topics = c(1:30),
+            n = 20)
+# Most associated reforms for any selected topics
+load("werd_without_droppedFINAL.rda")
+findThoughts(model = mod30,
+             texts = werd_without_dropped$reform_description,
+             topics = 22,
+             n = 10)
+write_xlsx(werd_without_dropped, path = "werd_w_o_dropped.xlsx") #exports an excel file of the database with the reforms included in the topic model analysis(note that the reforms in this excel file are NOT pre-processed).
+
+```
+
+```{r}
+## This code combines these function to generate the key of topics:
+
+create_topic_summary <- function(stm_model, documents, num_words = 20, num_docs = 3) {
+  topic_prevalence <- colMeans(stm_model$theta)
+  topic_order <- order(topic_prevalence, decreasing = TRUE)
+  
+  # Create an empty data frame to store results
+  topic_summary <- data.frame(
+    Topic = integer(),
+    Highest_Prob = character(),
+    FREX = character(),
+    LIFT = character(),
+    SCORE = character(),
+    Most_Associated_Docs = character(),
+    Mean_Prevalence_Score = numeric(),
+    stringsAsFactors = FALSE
+  )
+  
+  # Iterate over topics in order of prevalence
+  for (topic in topic_order) {
+    # Get the highest probability, FREX, LIFT, and SCORE words
+    topic_words <- labelTopics(stm_model, topics = topic, n = num_words)
+    
+    # Get the most associated reforms
+    associated_reforms <- findThoughts(model = stm_model,
+             texts = documents,
+             topics = topic,
+             n = num_docs)$docs[[1]]
+    
+    # Add a new row to the data frame
+    topic_summary <- rbind(topic_summary, data.frame(
+      Topic = topic,
+      Highest_Prob = paste(topic_words$prob[topic,], collapse = ", "),
+      FREX = paste(topic_words$frex[topic,], collapse = ", "),
+      LIFT = paste(topic_words$lift[topic,], collapse = ", "),
+      SCORE = paste(topic_words$score[topic,], collapse = ", "),
+      Most_Associated_Docs = paste(associated_reforms, collapse = "| "),
+      Mean_Prevalence_Score = round(topic_prevalence[topic],3), 
+      stringsAsFactors = FALSE
+    ))
+  }
+  
+  return(topic_summary)
+}
+
+topic_summary <- create_topic_summary(mod30, werd_without_dropped$reform_description)
+write_xlsx(topic_summary, path = "30topicSummary_v3.xlsx")
+
+## Extracting topic scores and creating the dataset at the reform level
+topic_scores <- mod30$theta %>% as.data.frame()
+colnames(topic_scores) <- paste("model30_topic", 1:30)
+
+WERD_V3_TopicScores <- cbind(werd_without_dropped,topic_scores)
+write_xlsx(WERD_V3_TopicScores, path = "WERDV3_30_FINAL_topicscores.xlsx")
+```
+
+
